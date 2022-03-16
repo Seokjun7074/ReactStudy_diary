@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useMemo } from "react";
+import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import "./App.css";
 import DiaryEditor from "./DiaryEditor";
 import DiaryList from "./DiaryList";
@@ -26,10 +26,11 @@ function App() {
     });
     setData(initData);
   };
+
   useEffect(() => {
     getData();
   }, []);
-  const onCreate = (author, content, emotion) => {
+  const onCreate = useCallback((author, content, emotion) => {
     const created_date = new Date().getTime();
     const newItem = {
       author,
@@ -39,23 +40,23 @@ function App() {
       id: dataId.current,
     };
     dataId.current += 1;
-    setData([newItem, ...data]);
-  };
-  const onRemove = (targetId) => {
-    // console.log(`${targetId}가 삭제되었다`);
-    const newDiaryList = data.filter((it) => {
-      return it.id !== targetId;
-    });
-    setData(newDiaryList);
-  };
-  const onEdit = (targetId, newContent) => {
-    setData(
+    setData((data) => [newItem, ...data]);
+  }, []);
+  const onRemove = useCallback((targetId) => {
+    setData((data) =>
+      data.filter((it) => {
+        return it.id !== targetId;
+      })
+    );
+  }, []);
+  const onEdit = useCallback((targetId, newContent) => {
+    setData((data) =>
       data.map((it) =>
         it.id === targetId ? { ...it, content: newContent } : it
       )
     );
-  };
-
+  }, []);
+  //useMemo를 사용하게되면 getDiaryAnalysis는 내부의 콜백함수가 리턴한 값을 가지게 된다.
   const getDiaryAnalysis = useMemo(() => {
     const goodCount = data.filter((it) => {
       return it.emotion >= 3;
@@ -63,12 +64,12 @@ function App() {
     const badCount = data.length - goodCount;
     const goodRatio = (goodCount / data.length) * 100;
     return { goodCount, badCount, goodRatio }; //객체 형식으로 리턴
-  }, [data.length]);
+  }, [data.length]); //data.length가 변화할때 안에 있는 함수 실행
 
   const { goodCount, badCount, goodRatio } = getDiaryAnalysis;
   return (
     <div>
-      <OptimizeTest />
+      {/* <OptimizeTest /> */}
       <DiaryEditor onCreate={onCreate} />
       <div>전체일기: {data.length}</div>
       <div>기분좋은일기: {goodCount}</div>
