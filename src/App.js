@@ -1,11 +1,50 @@
-import { useState, useRef, useEffect, useMemo, useCallback } from "react";
+import {
+  useState,
+  useRef,
+  useEffect,
+  useMemo,
+  useCallback,
+  useReducer,
+} from "react";
 import "./App.css";
 import DiaryEditor from "./DiaryEditor";
 import DiaryList from "./DiaryList";
-import OptimizeTest from "./OptimizeTest";
+import Bank from "./Reducer";
+// import OptimizeTest from "./OptimizeTest";
+
+const reducer = (state, action) => {
+  switch (action.type) {
+    case "INIT": {
+      return action.data;
+    }
+    case "CREATE": {
+      const created_date = new Date().getTime();
+      const newItem = {
+        ...action.data,
+        created_date,
+      };
+      return [newItem, ...state];
+    }
+    case "REMOVE": {
+      return state.filter((it) => {
+        return it.id !== action.targetId;
+      });
+    }
+    case "EDIT": {
+      return state.map((it) => {
+        return it.id === action.targetId
+          ? { ...it, content: action.newContent }
+          : it;
+      });
+    }
+    default:
+      return state; //default인 경우는 state를 그대로 유지한다.
+  }
+};
 
 function App() {
-  const [data, setData] = useState([]);
+  // const [data, setData] = useState([]);
+  const [data, dispatch] = useReducer(reducer, []);
 
   const dataId = useRef(0);
 
@@ -24,37 +63,45 @@ function App() {
         id: dataId.current++,
       };
     });
-    setData(initData);
+
+    dispatch({ type: "INIT", data: initData });
+    // setData(initData);
   };
 
   useEffect(() => {
     getData();
   }, []);
   const onCreate = useCallback((author, content, emotion) => {
-    const created_date = new Date().getTime();
-    const newItem = {
-      author,
-      content,
-      emotion,
-      created_date,
-      id: dataId.current,
-    };
+    dispatch({
+      type: "CREATE",
+      data: { author, content, emotion, id: dataId.current },
+    });
+    // const created_date = new Date().getTime();
+    // const newItem = {
+    //   author,
+    //   content,
+    //   emotion,
+    //   created_date,
+    //   id: dataId.current,
+    // };
     dataId.current += 1;
-    setData((data) => [newItem, ...data]);
+    // setData((data) => [newItem, ...data]);
   }, []);
   const onRemove = useCallback((targetId) => {
-    setData((data) =>
-      data.filter((it) => {
-        return it.id !== targetId;
-      })
-    );
+    dispatch({ type: "REMOVE", targetId });
+    // setData((data) =>
+    //   data.filter((it) => {
+    //     return it.id !== targetId;
+    //   })
+    // );
   }, []);
   const onEdit = useCallback((targetId, newContent) => {
-    setData((data) =>
-      data.map((it) =>
-        it.id === targetId ? { ...it, content: newContent } : it
-      )
-    );
+    dispatch({ type: "EDIT", targetId, newContent });
+    // setData((data) =>
+    //   data.map((it) =>
+    //     it.id === targetId ? { ...it, content: newContent } : it
+    //   )
+    // );
   }, []);
   //useMemo를 사용하게되면 getDiaryAnalysis는 내부의 콜백함수가 리턴한 값을 가지게 된다.
   const getDiaryAnalysis = useMemo(() => {
@@ -69,13 +116,14 @@ function App() {
   const { goodCount, badCount, goodRatio } = getDiaryAnalysis;
   return (
     <div>
+      <Bank />
       {/* <OptimizeTest /> */}
-      <DiaryEditor onCreate={onCreate} />
+      {/* <DiaryEditor onCreate={onCreate} />
       <div>전체일기: {data.length}</div>
       <div>기분좋은일기: {goodCount}</div>
       <div>기분나쁜일기: {badCount}</div>
       <div>기분좋은일기의 비율: {goodRatio}%</div>
-      <DiaryList diaryList={data} onRemove={onRemove} onEdit={onEdit} />
+      <DiaryList diaryList={data} onRemove={onRemove} onEdit={onEdit} /> */}
     </div>
   );
 }
