@@ -1,10 +1,11 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
+import { DiaryDispatchContext } from "./App";
 
-const DiaryEditor = ({ onCreate }) => {
+const DiaryEditor = () => {
   // useEffect(() => {
   //   console.log("DiaryEditor Rendering~");
   // });
-
+  const { onCreate } = useContext(DiaryDispatchContext); //비구화할당으로 가져오는 이유: DiaryDispatchContext는 안에 함수 3개가 담긴 객체
   const authorInput = useRef();
   const contentInput = useRef();
 

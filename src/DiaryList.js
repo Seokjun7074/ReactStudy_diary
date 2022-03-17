@@ -1,6 +1,9 @@
+import { useContext } from "react";
+import { DiaryStateContext } from "./App";
 import DiaryItem from "./DiariyItem";
 
-const DiaryList = ({ diaryList, onRemove, onEdit }) => {
+const DiaryList = () => {
+  const diaryList = useContext(DiaryStateContext); //변수에 context 전달
   return (
     <div className="DiaryList">
       <h2>일기 리스트</h2>
@@ -8,7 +11,7 @@ const DiaryList = ({ diaryList, onRemove, onEdit }) => {
       <div>
         {/* map(it,idx)로 배열의 인덱스도 사용 가능 */}
         {diaryList.map((it) => (
-          <DiaryItem key={it.id} {...it} onRemove={onRemove} onEdit={onEdit} />
+          <DiaryItem key={it.id} {...it} />
         ))}
       </div>
     </div>

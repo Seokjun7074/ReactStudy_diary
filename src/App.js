@@ -1,4 +1,4 @@
-import {
+import React, {
   useState,
   useRef,
   useEffect,
@@ -41,6 +41,11 @@ const reducer = (state, action) => {
       return state; //default인 경우는 state를 그대로 유지한다.
   }
 };
+
+export const DiaryStateContext = React.createContext();
+//export default는 하나만 가능하다.
+//DiaryStateContext도 결국 컴포넌트이므로 너무 많은 값과 연관되어있으면 리렌더링 최적화 문제가 생긴다.
+export const DiaryDispatchContext = React.createContext();
 
 function App() {
   // const [data, setData] = useState([]);
@@ -103,6 +108,10 @@ function App() {
     //   )
     // );
   }, []);
+  const memoizedDispatches = useMemo(() => {
+    return { onCreate, onRemove, onEdit };
+  }, []); //useMemo를 사용하는 이유: App컴포넌트가 재생성될 떄 memoizedDispatches도 같이 재생성 됨
+
   //useMemo를 사용하게되면 getDiaryAnalysis는 내부의 콜백함수가 리턴한 값을 가지게 된다.
   const getDiaryAnalysis = useMemo(() => {
     const goodCount = data.filter((it) => {
@@ -115,16 +124,20 @@ function App() {
 
   const { goodCount, badCount, goodRatio } = getDiaryAnalysis;
   return (
-    <div>
-      <Bank />
-      {/* <OptimizeTest /> */}
-      {/* <DiaryEditor onCreate={onCreate} />
-      <div>전체일기: {data.length}</div>
-      <div>기분좋은일기: {goodCount}</div>
-      <div>기분나쁜일기: {badCount}</div>
-      <div>기분좋은일기의 비율: {goodRatio}%</div>
-      <DiaryList diaryList={data} onRemove={onRemove} onEdit={onEdit} /> */}
-    </div>
+    <DiaryStateContext.Provider value={data}>
+      <DiaryDispatchContext.Provider value={memoizedDispatches}>
+        <div>
+          {/* <Bank /> */}
+          {/* <OptimizeTest /> */}
+          <DiaryEditor />
+          <div>전체일기: {data.length}</div>
+          <div>기분좋은일기: {goodCount}</div>
+          <div>기분나쁜일기: {badCount}</div>
+          <div>기분좋은일기의 비율: {goodRatio}%</div>
+          <DiaryList />
+        </div>
+      </DiaryDispatchContext.Provider>
+    </DiaryStateContext.Provider>
   );
 }
 
